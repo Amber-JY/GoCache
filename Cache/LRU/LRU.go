@@ -1,6 +1,8 @@
 package LRU
 
-import "container/list"
+import (
+	"container/list"
+)
 
 const (
 	ELEM_ADDED int = iota
@@ -50,13 +52,11 @@ func New(capByte int64) *lruCache {
 //
 func (c *lruCache) Add(key string, value Value) int {
 	if elem, ok := c.cache[key]; ok { //已存在则更新值
-		c.curByte += int64(elem.Value.(*entry).value.Len() - value.Len()) //更新值后占用的空间可能改变
+		c.curByte += int64(value.Len() - elem.Value.(*entry).value.Len()) //更新值后占用的空间可能改变
 		elem.Value.(*entry).value = value
 		c.schList.MoveToFront(elem)
 	} else { //不存在加入，判断是否淘汰
-		elem.Value.(*entry).key = key
-		elem.Value.(*entry).value = value
-		c.schList.PushFront(elem)
+		elem := c.schList.PushFront(&entry{key, value})
 		c.curByte += elem.Value.(*entry).Size()
 
 		c.cache[key] = elem
